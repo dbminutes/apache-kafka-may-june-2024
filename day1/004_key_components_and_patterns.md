@@ -1,2 +1,0 @@
-# Key Components and Patterns
-

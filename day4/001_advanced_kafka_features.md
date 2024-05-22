@@ -1,2 +1,0 @@
-# Advanced Kafka Features
-
