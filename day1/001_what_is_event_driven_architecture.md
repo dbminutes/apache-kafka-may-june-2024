@@ -46,7 +46,6 @@ graph TD
 2. **Event Transmission**: The event channel transmits the event to interested consumers.
 3. **Event Processing**: Event consumers process the event, often leading to the generation of new events.
 
-Sure! Here are the diagrams in Mermaid syntax:
 
 ### Step 1: Event Producers
 ```mermaid
