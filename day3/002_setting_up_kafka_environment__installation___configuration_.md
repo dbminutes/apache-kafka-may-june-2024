@@ -48,7 +48,7 @@ Kafka uses Zookeeper to manage distributed brokers. Start Zookeeper first.
 2. **Start Zookeeper:**
 
    ```sh
-   /usr/local/kafka/bin/zookeeper-server-start.sh -daemon /usr/local/kafka/config/zookeeper.properties
+   /usr/local/kafka/bin/zookeeper-server-start.sh  /usr/local/kafka/config/zookeeper.properties
    ```
 
 ### Step 4: Start Kafka Broker
@@ -71,7 +71,7 @@ Kafka uses Zookeeper to manage distributed brokers. Start Zookeeper first.
 2. **Start Kafka:**
 
    ```sh
-   /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+   /usr/local/kafka/bin/kafka-server-start.sh  /usr/local/kafka/config/server.properties
    ```
 
 ### Step 5: Create Kafka Systemd Unit Files (Optional)
