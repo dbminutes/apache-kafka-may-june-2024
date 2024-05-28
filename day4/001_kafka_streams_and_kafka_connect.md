@@ -131,7 +131,7 @@ To push Apache logs to a Kafka topic, you can use the FileSourceConnector, which
 
 ### Step 1: Prepare Apache Logs
 
-Ensure your Apache logs are in a file, for example, `apache_logs.log`.
+Ensure your Apache logs are in a file, for example, `access_log`.
 
 ### Step 2: Create a Kafka Topic
 
