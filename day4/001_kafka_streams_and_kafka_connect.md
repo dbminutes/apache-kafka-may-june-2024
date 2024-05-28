@@ -139,7 +139,7 @@ Create a Kafka topic where the logs will be pushed. Run the following command in
 
 ```sh
 kafka-topics.sh --create --topic apache-logs --bootstrap-server localhost:9092 --partitions 1 --rep
-
+```
 ### Step 3: Configure Kafka Connect
 
 Create a configuration file for the FileSourceConnector. Here’s an example configuration file named `connect-file-source.properties` (or use existing connector file in config directory):
