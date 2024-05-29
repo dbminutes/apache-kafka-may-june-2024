@@ -138,7 +138,7 @@ Ensure your Apache logs are in a file, for example, `access_log`.
 Create a Kafka topic where the logs will be pushed. Run the following command in your Kafka bin directory:
 
 ```sh
-kafka-topics.sh --create --topic apache-logs --bootstrap-server localhost:9092 --partitions 1 --rep
+/usr/local/kafka/bin/kafka-topics.sh --create --topic  apache-logs --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 ```
 ### Step 3: Configure Kafka Connect
 
@@ -163,7 +163,7 @@ topic=apache-logs
 If Kafka Connect is not already running, you can start it with the following command (adjust config file path accordingly):
 
 ```sh
-connect-standalone.sh connect-standalone.properties connect-file-source.properties
+/usr/local/kafka/bin/connect-standalone.sh connect-standalone.properties connect-file-source.properties
 ```
 
 - `connect-standalone.properties`: The properties file for standalone mode.
@@ -174,7 +174,7 @@ connect-standalone.sh connect-standalone.properties connect-file-source.properti
 Consume messages from the `apache-logs` topic to verify that the logs are being pushed to Kafka. Run the following command:
 
 ```sh
-kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic apache-logs --from-beginning
+/usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic apache-logs --from-beginning
 ```
 
 You should see the log entries from `apache_logs.log` being printed in the console.
