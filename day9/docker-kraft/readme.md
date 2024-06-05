@@ -39,7 +39,7 @@ docker build -t kafka-kraft .
 Run the Docker container with the following command:
 
 ```sh
-docker run -d --name kafka-kraft -p 9092:9092 -p 9093:9093 kafka-kraft
+docker run --name kafka-kraft -p 9092:9092 -p 9093:9093 kafka-kraft
 ```
 
 ### 4. Test the Kafka Setup
