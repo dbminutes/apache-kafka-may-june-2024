@@ -18,8 +18,15 @@
    ```
 
 4. **Run the scripts.** Now you can run each script by using `./` followed by the script name:
+   
    ```bash
    ./verify-crc.sh
+   ```
+   
+   ```bash
    ./verify-oc.sh
+   ```
+
+   ```bash
    ./verify-kafka.sh
    ```
