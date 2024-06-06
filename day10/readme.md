@@ -9,6 +9,7 @@
 1. **Install Java 17 via Alternatives**
 
    ```bash
+   sudo yum update
    sudo yum install java-17-openjdk-devel
    sudo alternatives --config java
    ```
