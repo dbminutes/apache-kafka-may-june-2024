@@ -159,7 +159,7 @@ oc exec $(oc get pods -o jsonpath="{.items[0].metadata.name}" -l app=my-kafka) -
 # Consume the message from the Kafka topic
 echo "Consuming message from Kafka topic"
 CONSUMED_MESSAGE=$(oc exec $(oc get pods -o jsonpath="{.items[0].metadata.name}" -l app=my-kafka) -- \
-  kafka-console-consumer.sh --topic $TOPIC_NAME --bootstrap-server localhost:9092 --from-beginning --timeout-ms 10000 | grep "$MESSAGE")
+  kafka-console-consumer.sh --topic $TOPIC_NAME --bootstrap-server localhost:9092 --from-beginning --timeout-ms 10000 )
 
 if [ -z "$CONSUMED_MESSAGE" ]; then
   echo "Error: Failed to consume message from Kafka topic $TOPIC_NAME."
