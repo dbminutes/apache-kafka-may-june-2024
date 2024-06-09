@@ -253,3 +253,214 @@ num.network.threads=8
 - **Data Loss:** The storage format step will remove any existing data in the specified directories. Ensure these directories are empty or backed up if they contain important data.
 - **Cluster Management:** Use the `kafka-storage.sh` tool to manage metadata and storage configurations.
 - **Compatibility:** Ensure all Kafka clients are compatible with the Kafka version running in KRaft mode.
+
+-----------------------------------------
+
+
+To use a key in your Kafka message to act as a duplicate finder, you can follow these steps:
+
+1. **Set the Key in Your Producer:**
+   When you send messages to a Kafka topic, set a unique key for each message. Kafka ensures that messages with the same key are sent to the same partition, maintaining their order.
+
+   Here’s an example using a Node.js Kafka client:
+
+   ```javascript
+   const { Kafka } = require('kafkajs');
+
+   const kafka = new Kafka({
+     clientId: 'my-producer',
+     brokers: ['kafka-broker1:9092', 'kafka-broker2:9092']
+   });
+
+   const producer = kafka.producer();
+
+   const sendMessage = async () => {
+     await producer.connect();
+     await producer.send({
+       topic: 'your-topic',
+       messages: [
+         { key: 'unique-key-1', value: 'message content 1' },
+         { key: 'unique-key-2', value: 'message content 2' },
+         // more messages
+       ],
+     });
+
+     await producer.disconnect();
+   };
+
+   sendMessage().catch(console.error);
+   ```
+
+2. **Consume Messages and Check for Duplicates:**
+   When consuming messages, you can maintain a set of keys to track duplicates. Here’s an example:
+
+   ```javascript
+   const consumer = kafka.consumer({ groupId: 'my-group' });
+
+   const consumeMessages = async () => {
+     await consumer.connect();
+     await consumer.subscribe({ topic: 'your-topic', fromBeginning: true });
+
+     const seenKeys = new Set();
+
+     await consumer.run({
+       eachMessage: async ({ topic, partition, message }) => {
+         const key = message.key.toString();
+         const value = message.value.toString();
+
+         if (seenKeys.has(key)) {
+           console.log(`Duplicate message found with key: ${key}`);
+         } else {
+           seenKeys.add(key);
+           console.log(`New message received: ${value}`);
+         }
+       },
+     });
+   };
+
+   consumeMessages().catch(console.error);
+   ```
+
+3. **Considerations for Large Scale Applications:**
+   - **State Management:** If you are dealing with a large number of messages, you might need to use a more scalable state management system (like Redis or a database) to track the keys instead of keeping them in memory.
+   - **Windowing and TTL:** To avoid memory bloat, you can implement a time-to-live (TTL) for keys or use a windowing mechanism to limit the time frame for duplicate detection.
+
+### Example Using Redis for State Management
+
+Here's an example where you use Redis to track message keys:
+
+1. **Install Redis and the Redis Client:**
+
+   ```bash
+   npm install redis
+   ```
+
+2. **Modify the Consumer to Use Redis:**
+
+   ```javascript
+   const redis = require('redis');
+   const redisClient = redis.createClient();
+
+   redisClient.on('error', (err) => {
+     console.error('Redis error:', err);
+   });
+
+   const consumeMessagesWithRedis = async () => {
+     await consumer.connect();
+     await consumer.subscribe({ topic: 'your-topic', fromBeginning: true });
+
+     await consumer.run({
+       eachMessage: async ({ topic, partition, message }) => {
+         const key = message.key.toString();
+         const value = message.value.toString();
+
+         redisClient.get(key, (err, reply) => {
+           if (err) {
+             console.error('Redis GET error:', err);
+           } else if (reply) {
+             console.log(`Duplicate message found with key: ${key}`);
+           } else {
+             redisClient.set(key, 'exists', 'EX', 60 * 60); // Set key with 1-hour expiry
+             console.log(`New message received: ${value}`);
+           }
+         });
+       },
+     });
+   };
+
+   consumeMessagesWithRedis().catch(console.error);
+   ```
+
+In this setup, Redis is used to store the message keys with an expiration time, helping to detect duplicates efficiently. Adjust the expiration time based on your application's requirements.
+
+
+-----------------------
+
+### `log.segment.bytes` in Apache Kafka
+
+The `log.segment.bytes` property in Apache Kafka defines the size of the log segment files in bytes. When a segment file reaches this size, a new log segment is created. This setting is important for managing log file sizes and controlling the retention and compaction of log data.
+
+### Use Case for `log.segment.bytes`
+
+A common use case for configuring `log.segment.bytes` is to control the size of log segments to optimize disk I/O performance and manage disk space. For example, if you have a topic with a high write throughput, smaller segment sizes might lead to more frequent segment rolling, resulting in increased disk I/O. Conversely, larger segment sizes might reduce the frequency of segment rolling but could increase the time taken for log recovery and compaction.
+
+### Steps to Configure `log.segment.bytes`
+
+#### 1. Modify the Kafka Broker Configuration
+
+You can configure `log.segment.bytes` by modifying the `server.properties` file on each broker:
+
+1. **Open the Kafka configuration file**:
+    ```bash
+    nano /path/to/kafka/config/server.properties
+    ```
+
+2. **Add or modify the `log.segment.bytes` property**:
+    ```properties
+    log.segment.bytes=1073741824  # 1 GB
+    ```
+
+3. **Save the configuration file** and exit the editor.
+
+#### 2. Restart the Kafka Broker
+
+For the changes to take effect, restart the Kafka broker:
+
+```bash
+sudo systemctl restart kafka
+```
+
+Alternatively, if you are running Kafka manually, stop and start the Kafka broker:
+
+```bash
+/path/to/kafka/bin/kafka-server-stop.sh
+/path/to/kafka/bin/kafka-server-start.sh /path/to/kafka/config/server.properties
+```
+
+### Example Scenario
+
+Consider a scenario where you have a Kafka topic with a high write rate and you want to optimize log segment size for better performance:
+
+1. **Current Configuration**:
+    - Default `log.segment.bytes`: 1 GB (1073741824 bytes).
+
+2. **Observation**:
+    - High I/O due to frequent segment creation.
+    - High disk space usage due to large segments.
+
+3. **Adjustment**:
+    - Reduce `log.segment.bytes` to 512 MB (536870912 bytes) for more manageable segment sizes and to reduce disk I/O.
+
+4. **Configuration Change**:
+    ```properties
+    log.segment.bytes=536870912  # 512 MB
+    ```
+
+5. **Expected Outcome**:
+    - More frequent segment creation.
+    - Improved log compaction and recovery times.
+    - Better disk space management.
+
+### Testing the Configuration
+
+1. **Create a test topic**:
+    ```bash
+    /path/to/kafka/bin/kafka-topics.sh --create --topic test-segment --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+    ```
+
+2. **Produce messages to the topic**:
+    ```bash
+    /path/to/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test-segment
+    ```
+    Enter some test messages.
+
+3. **Check the log directory**:
+    Navigate to the Kafka log directory and check the size of the segment files:
+    ```bash
+    ls -lh /path/to/kafka/logs/test-segment-0/
+    ```
+
+> **[!IMPORTANT]**
+> You can also use bulk message creation scripts covered during session.     
+
+You should see segment files that are close to the configured `log.segment.bytes` size.
