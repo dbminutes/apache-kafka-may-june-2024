@@ -464,3 +464,117 @@ Consider a scenario where you have a Kafka topic with a high write rate and you 
 > You can also use bulk message creation scripts covered during session.     
 
 You should see segment files that are close to the configured `log.segment.bytes` size.
+
+-----------------------
+
+### 1. **Setting Up Kafka ACLs**
+
+Before setting up ACLs, ensure that your Kafka cluster is configured to use a security protocol that supports ACLs, such as SASL or SSL.
+
+**Kafka Broker Configuration:**
+
+Edit the `server.properties` file of your Kafka broker to enable SASL or SSL authentication.
+
+```properties
+# Enable SASL/PLAIN authentication
+listeners=SASL_PLAINTEXT://:9092
+advertised.listeners=SASL_PLAINTEXT://localhost:9092
+security.inter.broker.protocol=SASL_PLAINTEXT
+sasl.mechanism.inter.broker.protocol=PLAIN
+sasl.enabled.mechanisms=PLAIN
+
+# Enable SSL authentication (if required)
+# listeners=SSL://:9093
+# advertised.listeners=SSL://localhost:9093
+# ssl.keystore.location=/path/to/keystore.jks
+# ssl.keystore.password=password
+# ssl.key.password=password
+# ssl.truststore.location=/path/to/truststore.jks
+# ssl.truststore.password=password
+```
+
+### 2. **Creating ACLs**
+
+To create ACLs, you will use the `kafka-acls.sh` script, which is located in the `bin` directory of your Kafka installation.
+
+#### Example 1: Allowing a User to Produce to a Topic
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:producer-user \
+  --operation Write --topic test-topic
+```
+
+This command adds an ACL to allow `producer-user` to write to `test-topic`.
+
+#### Example 2: Allowing a User to Consume from a Topic
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:consumer-user \
+  --operation Read --topic test-topic --group test-group
+```
+
+This command adds an ACL to allow `consumer-user` to read from `test-topic` and join the consumer group `test-group`.
+
+#### Example 3: Allowing a User to Create Topics
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:admin-user \
+  --operation Create --topic test-topic
+```
+
+This command allows `admin-user` to create `test-topic`.
+
+### 3. **Listing ACLs**
+
+To list existing ACLs, use the following command:
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --list
+```
+
+This command will list all ACLs currently configured in the Kafka cluster.
+
+### 4. **Removing ACLs**
+
+To remove ACLs, you can use a command similar to the one used to add ACLs, but with the `--remove` option.
+
+#### Example 4: Removing an ACL for a User
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --remove --allow-principal User:producer-user \
+  --operation Write --topic test-topic
+```
+
+This command removes the ACL that allows `producer-user` to write to `test-topic`.
+
+### 5. **Using Wildcards**
+
+You can use wildcards in ACLs to apply permissions to multiple resources.
+
+#### Example 5: Allowing a User to Produce to All Topics
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:producer-user \
+  --operation Write --topic '*'
+```
+
+This command allows `producer-user` to write to all topics.
+
+### 6. **Additional Operations**
+
+Kafka ACLs support various operations, such as `Read`, `Write`, `Create`, `Delete`, `Alter`, `Describe`, and `ClusterAction`. You can apply these operations to different resources (topics, consumer groups, clusters).
+
+#### Example 6: Allowing a User to Describe a Topic
+
+```sh
+bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 \
+  --add --allow-principal User:admin-user \
+  --operation Describe --topic test-topic
+```
+
+This command allows `admin-user` to describe `test-topic`.
